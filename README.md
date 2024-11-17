@@ -18,27 +18,26 @@ You can then read the current Pyth price using the following:
 
 ```python
 from pythclient.pythclient import PythClient
-from pythclient.pythaccounts import PythPriceAccount
-from pythclient.utils import get_key
+from pythclient.pythaccounts import DEFAULT_MAPPING_KEY
+from pythclient.utils import DEFAULT_PROGRAM_KEY
 
-solana_network="devnet"
-async with PythClient(
-    first_mapping_account_key=get_key(solana_network, "mapping"),
-    program_key=get_key(solana_network, "program") if use_program else None,
-) as c:
-    await c.refresh_all_prices()
-    products = await c.get_products()
-    for p in products:
-        print(p.attrs)
-        prices = await p.get_prices()
-        for _, pr in prices.items():
-            print(
-                pr.price_type,
-                pr.aggregate_price_status,
-                pr.aggregate_price,
-                "p/m",
-                pr.aggregate_price_confidence_interval,
-            )
+async def fetch_pyth_prices(network="devnet"):
+    from pythclient.pythclient import PythClient
+    from pythclient.utils import DEFAULT_MAPPING_KEY, DEFAULT_PROGRAM_KEY
+
+    print("Connecting to Pyth Network...")
+    async with PythClient(first_mapping_account_key=DEFAULT_MAPPING_KEY, program_key=DEFAULT_PROGRAM_KEY) as client:
+        await client.refresh_all_prices()
+        products = await client.get_products()
+        for product in products:
+            print(f"Product: {product.attrs.get('symbol', 'Unknown')}")
+            prices = await product.get_prices()
+            for _, price in prices.items():
+                print(
+                    f"Price: {price.aggregate_price} ± {price.aggregate_price_confidence_interval}"
+                )
+
+
 ```
 
 This code snippet lists the products on pyth and the price for each product. Sample output is:
